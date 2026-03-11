@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.env
+venv/
+env/
+
+# Collected thermal data (large, machine-specific)
+# thermal_data/
+
+# Trained models
+# models/
+
+# Plots and screenshots
+# plots/
+# screenshots/
+
+# CircuitPython compiled files
+*.mpy
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
