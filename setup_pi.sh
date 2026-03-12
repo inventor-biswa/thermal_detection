@@ -22,7 +22,7 @@ success() { echo -e "${GREEN}[OK]${NC}   $1"; }
 warn()    { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error()   { echo -e "${RED}[ERR]${NC}  $1"; exit 1; }
 
-REPO_URL="git@github.com:inventor-biswa/thermal_detection.git"
+REPO_URL="https://github.com/inventor-biswa/thermal_detection.git"
 PROJECT_DIR="$HOME/thermal_detection"
 VENV_DIR="$PROJECT_DIR/venv"
 LAUNCHER="$HOME/run_thermal.sh"
