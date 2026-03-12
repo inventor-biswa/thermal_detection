@@ -321,6 +321,24 @@ def run_ui(port, baud, model_path=None):
     interp_scale = 50  # 8 * 50 = 400px = HEATMAP_SIZE
     held_frame = None
 
+    # ── Label display mapping (normalise labels for display) ──
+    # Any label containing 'healthy' but not 'un' is shown as 'healthy'
+    LABEL_MAP = {
+        "moderate_healthy": "healthy",
+        "moderate healthy": "healthy",
+        "moderately_healthy": "healthy",
+    }
+
+    def normalise_label(raw: str) -> str:
+        """Map raw model label to a clean display label."""
+        key = raw.strip().lower()
+        if key in LABEL_MAP:
+            return LABEL_MAP[key]
+        # Fallback: anything containing 'healthy' but NOT 'un' → healthy
+        if "healthy" in key and "un" not in key:
+            return "healthy"
+        return raw.lower()
+
     # ── ML Model ──
     ml_model = None
     ml_prediction = ""
@@ -524,7 +542,7 @@ def run_ui(port, baud, model_path=None):
                         conf = max(proba)
                     else:
                         conf = 0.0
-                    ml_prediction = pred
+                    ml_prediction = normalise_label(pred)  # ← clean label
                     ml_confidence = conf
                 except Exception:
                     ml_prediction = "error"
@@ -534,7 +552,7 @@ def run_ui(port, baud, model_path=None):
             pygame.draw.line(screen, DARK_GRAY, (sb_x + 10, sy), (sb_x + SIDEBAR_W - 10, sy))
             sy += 8
             draw_text(screen, "ML PREDICT", font_small, (sb_x + 12, sy), GRAY, shadow=False)
-            pred_color = GREEN if ml_prediction == "healthy" else ORANGE
+            pred_color = GREEN if ml_prediction == "healthy" else ORANGE  # healthy=green, unhealthy=orange
             draw_text(screen, ml_prediction.upper(), font_large, (sb_x + 12, sy + 18), pred_color)
             draw_text(screen, f"{ml_confidence:.0%}", font_med, (sb_x + 12, sy + 48), GRAY, shadow=False)
 
