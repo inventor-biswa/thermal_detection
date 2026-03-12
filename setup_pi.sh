@@ -49,8 +49,7 @@ sudo apt-get install -y \
     python3-matplotlib \
     python3-pygame \
     python3-serial \
-    i2c-tools libatlas-base-dev \
-    fonts-open-type
+    i2c-tools libopenblas-dev
 success "System dependencies installed."
 
 # ── Step 3: Clone the Project Repository ─────────────────────────────────────
