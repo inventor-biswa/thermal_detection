@@ -25,6 +25,15 @@ Ensure you have Python 3.10+ installed, then run:
 pip install pyserial numpy scikit-learn matplotlib pygame
 ```
 
+### 🍓 Raspberry Pi One-Step Setup
+
+If you are using a Raspberry Pi as your host:
+```bash
+chmod +x setup_pi.sh
+./setup_pi.sh
+```
+This script handles system updates, handles the `EXTERNALLY-MANAGED` pip restrictions by creating a virtual environment, and optionally enables I2C for direct sensor connection.
+
 ## 📋 Project Structure
 
 - `code.py`: CircuitPython firmware for the PyGamer sensor node.

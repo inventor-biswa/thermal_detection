@@ -24,6 +24,13 @@ Run once at the start:
 pip install pyserial numpy scikit-learn matplotlib pygame
 ```
 
+### Raspberry Pi One-Step Setup
+If using a Pi, run this instead to handle system dependencies and virtual environments:
+```bash
+chmod +x setup_pi.sh
+./setup_pi.sh
+```
+
 ---
 
 ## Step 1 — Upload Code to PyGamer
