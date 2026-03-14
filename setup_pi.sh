@@ -80,9 +80,9 @@ fi
 source "$VENV_DIR/bin/activate"
 
 # Install pip-only packages
-info "Installing ML packages (scikit-learn, pyserial) via pip..."
+info "Installing ML + Web Dashboard packages via pip..."
 pip install --upgrade pip
-pip install scikit-learn
+pip install scikit-learn flask flask-socketio eventlet smbus2
 
 success "All Python packages installed."
 
@@ -100,32 +100,44 @@ info "Step 6/6: Creating launcher scripts..."
 # --- Main launcher (activates venv) ---
 cat > "$LAUNCHER" << EOF
 #!/bin/bash
-# Launcher: activates venv and runs the thermal camera UI
+# Launcher: activates venv and runs the motor health monitor
 cd $PROJECT_DIR
 source venv/bin/activate
 
-# Make sure the display is set correctly for Pi desktop
 export DISPLAY=:0
 
 echo "Select a mode:"
-echo "  1) Live Thermal UI"
-echo "  2) Collect Data"
-echo "  3) Train Model"
-echo "  4) Real-time Predict"
-read -p "Enter choice [1-4]: " choice
+echo "  1) Web Dashboard (recommended)"
+echo "  2) Live Thermal UI (pygame)"
+echo "  3) Collect Data"
+echo "  4) Train Model"
+echo "  5) Real-time Predict (CLI)"
+read -p "Enter choice [1-5]: " choice
 
 case "\$choice" in
     1)
         read -p "Serial port (default: /dev/ttyACM0): " port
         port=\${port:-/dev/ttyACM0}
-        model=\$(ls models/*.pkl 2>/dev/null | head -1 || echo "")
+        model=\$(ls models/*.pkl 2>/dev/null | sort -r | head -1 || echo "")
+        echo "Starting web dashboard..."
+        echo "Open: http://\$(hostname -I | awk '{print \$1}'):5000"
+        if [ -n "\$model" ]; then
+            python app.py --port "\$port" --model "\$model"
+        else
+            python app.py --port "\$port"
+        fi
+        ;;
+    2)
+        read -p "Serial port (default: /dev/ttyACM0): " port
+        port=\${port:-/dev/ttyACM0}
+        model=\$(ls models/*.pkl 2>/dev/null | sort -r | head -1 || echo "")
         if [ -n "\$model" ]; then
             python thermal_ui.py --port "\$port" --model "\$model"
         else
             python thermal_ui.py --port "\$port"
         fi
         ;;
-    2)
+    3)
         read -p "Serial port (default: /dev/ttyACM0): " port
         port=\${port:-/dev/ttyACM0}
         read -p "Label (healthy/unhealthy): " label
@@ -133,15 +145,15 @@ case "\$choice" in
         dur=\${dur:-120}
         python serial_collector.py --port "\$port" --label "\$label" --duration "\$dur"
         ;;
-    3)
+    4)
         python train_model.py --data thermal_data/ --visualize
         ;;
-    4)
+    5)
         read -p "Serial port (default: /dev/ttyACM0): " port
         port=\${port:-/dev/ttyACM0}
-        model=\$(ls models/*.pkl 2>/dev/null | head -1 || echo "")
+        model=\$(ls models/*.pkl 2>/dev/null | sort -r | head -1 || echo "")
         if [ -z "\$model" ]; then
-            echo "No trained model found. Run option 3 first."
+            echo "No trained model found. Run option 4 first."
             exit 1
         fi
         python realtime_predict.py --port "\$port" --model "\$model"

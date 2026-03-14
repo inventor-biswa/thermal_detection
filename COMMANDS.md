@@ -21,15 +21,35 @@ A complete step-by-step guide to set up, collect data, train, and run the motor 
 Run once at the start:
 
 ```bash
-pip install pyserial numpy scikit-learn matplotlib pygame
+pip install pyserial numpy scikit-learn matplotlib pygame flask flask-socketio eventlet smbus2
 ```
 
 ### Raspberry Pi One-Step Setup
-If using a Pi, run this instead to handle system dependencies and virtual environments:
+Downloads the fixed script and installs all dependencies including Flask, smbus2, and ARM-optimised packages:
 ```bash
+curl -O https://raw.githubusercontent.com/inventor-biswa/thermal_detection/main/setup_pi.sh
 chmod +x setup_pi.sh
 ./setup_pi.sh
 ```
+
+---
+
+## 🌐 Web Dashboard (Raspberry Pi — Recommended)
+
+```bash
+source venv/bin/activate
+python app.py --port /dev/ttyACM0
+
+# OR use the launcher (option 1):
+bash ~/run_thermal.sh
+```
+
+Then open from **any device on the same network**:
+```
+http://raspberrypi.local:5000
+```
+
+**Includes:** Live thermal heatmap • MPU6050 vibration chart • ML prediction • Collect/Train from browser
 
 ---
 
@@ -163,11 +183,17 @@ Press `Ctrl+C` to stop.
 | File | Location | Purpose |
 |---|---|---|
 | `code.py` | PyGamer CIRCUITPY drive | Streams thermal JSON over USB serial |
-| `serial_collector.py` | Laptop | Captures & labels training data |
-| `train_model.py` | Laptop | Trains ML classifier |
-| `thermal_ui.py` | Laptop | Live heatmap display |
-| `realtime_predict.py` | Laptop | Text-based live predictions |
+| `serial_collector.py` | Laptop / RPi | Captures & labels training data |
+| `train_model.py` | Laptop / RPi | Trains ML classifier |
+| `thermal_ui.py` | Laptop / RPi | pygame live heatmap display |
+| `realtime_predict.py` | Laptop / RPi | Text-based live predictions |
+| `app.py` | RPi | **Flask web dashboard server** |
+| `mpu_reader.py` | RPi | MPU6050 vibration reader thread |
+| `templates/index.html` | RPi | Web dashboard HTML |
+| `static/app.js` | RPi | WebSocket client + charts |
+| `static/style.css` | RPi | Dashboard dark theme |
 | `thermalcamera_config.py` | PyGamer | Alarm threshold & range config |
+| `setup_pi.sh` | RPi | One-step Pi setup script |
 
 ---
 
@@ -179,6 +205,8 @@ Press `Ctrl+C` to stop.
 | `No module named 'serial'` | `pip install pyserial` |
 | `No module named 'sklearn'` | `pip install scikit-learn` |
 | `ModuleNotFoundError: pygame` | `pip install pygame` |
+| `ModuleNotFoundError: flask` | `pip install flask flask-socketio eventlet` |
+| MPU6050 not found in dashboard | Run `i2cdetect -y 1` — should show `0x68` |
 | No `THERMAL:` lines in serial | Check `DATA_STREAM = True` in `code.py` |
-| Port not found | Open Device Manager → Ports (COM & LPT) |
+| Port not found | Run `ls /dev/ttyACM*` or `dmesg \| tail` |
 | Low accuracy after training | Collect more frames (200+ per label) |

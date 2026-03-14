@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Motor Health Monitor</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- ── Header ── -->
+  <header>
+    <div class="logo">🌡️ Motor Health Monitor</div>
+    <div class="header-status">
+      <span class="dot" id="serial-dot"></span><span id="serial-label">Serial</span>
+      <span class="dot ml" id="mpu-dot"></span><span id="mpu-label">MPU6050</span>
+      <span class="dot model" id="model-dot"></span><span id="model-label">Model</span>
+    </div>
+  </header>
+
+  <!-- ── Main Grid ── -->
+  <main>
+
+    <!-- LEFT: Thermal Heatmap -->
+    <section class="panel heatmap-panel">
+      <h2>Thermal Camera <span class="fps" id="fps-label">-- fps</span></h2>
+      <div class="heatmap-wrap">
+        <canvas id="heatmap" width="320" height="320"></canvas>
+        <div class="colorbar-wrap">
+          <canvas id="colorbar" width="20" height="320"></canvas>
+          <div class="colorbar-labels">
+            <span id="cb-max">--</span>
+            <span id="cb-mid">--</span>
+            <span id="cb-min">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Temp stats row -->
+      <div class="stats-row">
+        <div class="stat">
+          <span class="stat-label">MAX</span>
+          <span class="stat-val red" id="temp-max">--</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">AVG</span>
+          <span class="stat-val yellow" id="temp-avg">--</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">MIN</span>
+          <span class="stat-val cyan" id="temp-min">--</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER: Vibration Chart -->
+    <section class="panel vibration-panel">
+      <h2>Vibration (MPU6050)</h2>
+      <div class="vib-stats">
+        <div class="vib-stat">
+          <span class="stat-label">RMS</span>
+          <span class="stat-val" id="vib-rms">--</span><span class="unit">g</span>
+        </div>
+        <div class="vib-stat">
+          <span class="stat-label">PEAK</span>
+          <span class="stat-val" id="vib-peak">--</span><span class="unit">g</span>
+        </div>
+        <div class="vib-badge" id="vib-status">--</div>
+      </div>
+      <canvas id="vib-chart" height="200"></canvas>
+      <div class="axis-labels">
+        <span class="ax-dot" style="background:#f87171"></span>X
+        <span class="ax-dot" style="background:#4ade80"></span>Y
+        <span class="ax-dot" style="background:#60a5fa"></span>Z
+        <span class="ax-dot" style="background:#facc15"></span>RMS
+      </div>
+    </section>
+
+    <!-- RIGHT: Prediction & Controls -->
+    <section class="panel side-panel">
+
+      <!-- ML Prediction badge -->
+      <h2>ML Prediction</h2>
+      <div class="ml-badge" id="ml-badge">N/A</div>
+      <div class="ml-conf" id="ml-conf">--</div>
+
+      <!-- Alarm threshold -->
+      <div class="control-group">
+        <label>Alarm threshold <span id="alarm-val">120</span>°F</label>
+        <input type="range" id="alarm-slider" min="80" max="200" value="120" step="5" />
+      </div>
+
+      <!-- Data collection -->
+      <div class="control-group">
+        <label>Collect Training Data</label>
+        <input type="text" id="collect-label" placeholder="Label (e.g. healthy)" />
+        <div class="btn-row">
+          <button class="btn green" id="btn-start">▶ Start</button>
+          <button class="btn red" id="btn-stop" disabled>■ Stop</button>
+        </div>
+        <div class="collect-status" id="collect-status"></div>
+      </div>
+
+      <!-- Train model -->
+      <div class="control-group">
+        <label>Train ML Model</label>
+        <button class="btn blue wide" id="btn-train">🧠 Train Model</button>
+        <div class="train-output" id="train-output" style="display:none"></div>
+      </div>
+
+      <!-- Model selector -->
+      <div class="control-group">
+        <label>Load Model</label>
+        <select id="model-select">
+          <option value="">-- Select model --</option>
+        </select>
+        <button class="btn gray wide" id="btn-load-model">Load</button>
+      </div>
+
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
