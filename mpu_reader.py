@@ -44,7 +44,7 @@ class MPUReader:
         self.available   = False
         self.error       = None
 
-        self._lock       = threading.Lock()
+        self._lock       = threading.RLock()   # re-entrant so properties can be called inside lock
         self._running    = False
         self._thread     = None
         self._sensor     = None
@@ -122,6 +122,15 @@ class MPUReader:
             ax = self._ax_ms2 / G
             ay = self._ay_ms2 / G
             az = self._az_ms2 / G
+            rms  = self._rms_g
+            peak = self._peak_g
+            # Compute status inline — avoids re-acquiring lock via property
+            if rms < THRESH_NORMAL:
+                status = "NORMAL"
+            elif rms < THRESH_WARNING:
+                status = "WARNING"
+            else:
+                status = "HIGH"
             return {
                 "ax":        round(ax,           4),
                 "ay":        round(ay,           4),
@@ -130,9 +139,9 @@ class MPUReader:
                 "gy":        round(self._gy,     2),
                 "gz":        round(self._gz,     2),
                 "temp_c":    round(self._temp_c, 1),
-                "rms_g":     round(self._rms_g,  4),
-                "peak_g":    round(self._peak_g, 4),
-                "status":    self.status,
+                "rms_g":     round(rms,          4),
+                "peak_g":    round(peak,         4),
+                "status":    status,
                 "available": self.available,
             }
 
