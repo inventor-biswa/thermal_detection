@@ -159,41 +159,56 @@ class MPUReader:
 
     # ── Internal ──────────────────────────────────────────────────────────────
 
-    def _read_word_2c(self, reg: int) -> float:
-        """Read a signed 16-bit word from the MPU6050."""
-        high = self._bus.read_byte_data(self.address, reg)
-        low  = self._bus.read_byte_data(self.address, reg + 1)
-        val  = (high << 8) + low
-        return val - 65536 if val >= 0x8000 else val
+    def _read_all_raw(self) -> tuple:
+        """
+        Read all 6 accel + 2 temp + 6 gyro bytes in ONE 14-byte block read.
+        Much more reliable than 12 separate read_byte_data calls on RPi I2C.
+        Returns (ax, ay, az, gx, gy, gz) in raw int16 values.
+        """
+        data = self._bus.read_i2c_block_data(self.address, ACCEL_XOUT_H, 14)
+
+        def to_int16(hi, lo):
+            val = (hi << 8) | lo
+            return val - 65536 if val >= 0x8000 else val
+
+        ax = to_int16(data[0],  data[1])
+        ay = to_int16(data[2],  data[3])
+        az = to_int16(data[4],  data[5])
+        # data[6], data[7] = temperature (skip)
+        gx = to_int16(data[8],  data[9])
+        gy = to_int16(data[10], data[11])
+        gz = to_int16(data[12], data[13])
+        return ax, ay, az, gx, gy, gz
 
     def _read_loop(self):
-        peak_reset_interval = 2.0  # Reset peak every 2 seconds
+        peak_reset_interval = 2.0
         last_peak_reset = time.time()
+        consecutive_errors = 0
 
         while self._running:
             t0 = time.time()
             try:
-                ax = self._read_word_2c(ACCEL_XOUT_H)     / ACCEL_SCALE
-                ay = self._read_word_2c(ACCEL_XOUT_H + 2) / ACCEL_SCALE
-                az = self._read_word_2c(ACCEL_XOUT_H + 4) / ACCEL_SCALE
-                gx = self._read_word_2c(GYRO_XOUT_H)      / GYRO_SCALE
-                gy = self._read_word_2c(GYRO_XOUT_H + 2)  / GYRO_SCALE
-                gz = self._read_word_2c(GYRO_XOUT_H + 4)  / GYRO_SCALE
+                ax_r, ay_r, az_r, gx_r, gy_r, gz_r = self._read_all_raw()
 
-                # Vibration magnitude (remove gravity component from az)
-                vib_az = az - 1.0  # subtract 1g (gravity on Z)
+                ax = ax_r / ACCEL_SCALE
+                ay = ay_r / ACCEL_SCALE
+                az = az_r / ACCEL_SCALE
+                gx = gx_r / GYRO_SCALE
+                gy = gy_r / GYRO_SCALE
+                gz = gz_r / GYRO_SCALE
+
+                vib_az = az - 1.0  # subtract gravity on Z
                 mag = math.sqrt(ax**2 + ay**2 + vib_az**2)
 
                 self._mag_window.append(mag ** 2)
                 rms = math.sqrt(sum(self._mag_window) / len(self._mag_window)) if self._mag_window else 0.0
 
+                consecutive_errors = 0  # reset on success
                 now = time.time()
                 with self._lock:
                     self._ax, self._ay, self._az = ax, ay, az
                     self._gx, self._gy, self._gz = gx, gy, gz
                     self._rms_g = rms
-
-                    # Reset peak periodically
                     if now - last_peak_reset > peak_reset_interval:
                         self._peak_g = 0.0
                         last_peak_reset = now
@@ -201,12 +216,15 @@ class MPUReader:
                         self._peak_g = mag
 
             except Exception as e:
-                self.error = str(e)
+                consecutive_errors += 1
+                with self._lock:
+                    self.error = str(e)
+                if consecutive_errors <= 3:
+                    print(f"[MPU] Read error ({consecutive_errors}): {e}")
+                time.sleep(0.05)  # brief pause before retry
 
-            # Sleep for the remainder of the interval
             elapsed = time.time() - t0
-            sleep_t = max(0, self._interval - elapsed)
-            time.sleep(sleep_t)
+            time.sleep(max(0, self._interval - elapsed))
 
 
 # ── Standalone test ───────────────────────────────────────────────────────────
