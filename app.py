@@ -11,11 +11,18 @@ Usage:
 Then open: http://raspberrypi.local:5000  (or http://<Pi-IP>:5000)
 """
 
-# ── Fix: prevent code.py shadowing Python's stdlib 'code' module ──
-import sys as _sys, os as _os
-_proj = _os.path.dirname(_os.path.abspath(__file__))
-_sys.path = [_proj] + [p for p in _sys.path if p not in ('', '.', _proj)]
-# ──────────────────────────────────────────────────────────────────
+# ── Fix: pre-register stdlib 'code' before Flask/werkzeug imports it ──────────
+# werkzeug.debug.console does `import code` which finds our PyGamer code.py.
+# Solution: load the real stdlib code.py directly and register it first.
+import importlib.util as _ilu, sysconfig as _sc, os as _os, sys as _sys
+_stdlib_dir = _sc.get_path('stdlib')
+_code_file  = _os.path.join(_stdlib_dir, 'code.py')
+if _os.path.exists(_code_file) and 'code' not in _sys.modules:
+    _spec = _ilu.spec_from_file_location('code', _code_file)
+    _mod  = _ilu.module_from_spec(_spec)
+    _sys.modules['code'] = _mod
+    _spec.loader.exec_module(_mod)
+# ─────────────────────────────────────────────────────────────────────────────
 
 import argparse
 import glob
