@@ -82,7 +82,7 @@ source "$VENV_DIR/bin/activate"
 # Install pip-only packages
 info "Installing ML + Web Dashboard packages via pip..."
 pip install --upgrade pip
-pip install scikit-learn flask flask-socketio eventlet smbus2
+pip install scikit-learn flask flask-socketio eventlet mpu6050-raspberrypi
 
 success "All Python packages installed."
 
