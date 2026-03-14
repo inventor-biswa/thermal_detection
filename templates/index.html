@@ -26,15 +26,23 @@
     <section class="panel heatmap-panel">
       <h2>Thermal Camera <span class="fps" id="fps-label">-- fps</span></h2>
       <div class="heatmap-wrap">
-        <canvas id="heatmap" width="320" height="320"></canvas>
+        <canvas id="heatmap" width="420" height="420"></canvas>
         <div class="colorbar-wrap">
-          <canvas id="colorbar" width="20" height="320"></canvas>
+          <canvas id="colorbar" width="22" height="420"></canvas>
           <div class="colorbar-labels">
             <span id="cb-max">--</span>
             <span id="cb-mid">--</span>
             <span id="cb-min">--</span>
           </div>
         </div>
+      </div>
+
+      <!-- Camera controls: Hold / Focus / Palette / Unit -->
+      <div class="cam-controls">
+        <button class="cam-btn" id="btn-hold"   title="Freeze frame">⏸ Hold</button>
+        <button class="cam-btn" id="btn-focus"  title="Auto-range to current min/max">🔍 Focus</button>
+        <button class="cam-btn" id="btn-palette" title="Cycle palette">🎨 Palette</button>
+        <button class="cam-btn active" id="btn-unit" title="Toggle °C / °F">°C</button>
       </div>
 
       <!-- Temp stats row -->
@@ -54,7 +62,7 @@
       </div>
     </section>
 
-    <!-- CENTER: Vibration Chart -->
+    <!-- CENTER: Vibration Chart + Notes -->
     <section class="panel vibration-panel">
       <h2>Vibration (MPU6050)</h2>
       <div class="vib-stats">
@@ -68,12 +76,25 @@
         </div>
         <div class="vib-badge" id="vib-status">--</div>
       </div>
-      <canvas id="vib-chart" height="200"></canvas>
+      <canvas id="vib-chart" height="180"></canvas>
       <div class="axis-labels">
-        <span class="ax-dot" style="background:#f87171"></span>X
-        <span class="ax-dot" style="background:#4ade80"></span>Y
-        <span class="ax-dot" style="background:#60a5fa"></span>Z
+        <span class="ax-dot" style="background:#f87171"></span>X (g)
+        <span class="ax-dot" style="background:#4ade80"></span>Y (g)
+        <span class="ax-dot" style="background:#60a5fa"></span>Z (g)
         <span class="ax-dot" style="background:#facc15"></span>RMS
+      </div>
+
+      <!-- ── Notes panel (fills empty space) ── -->
+      <div class="notes-panel">
+        <div class="notes-header">
+          <span>📝 Session Notes</span>
+          <div class="notes-actions">
+            <button class="notes-btn" id="btn-notes-clear" title="Clear notes">✕ Clear</button>
+            <button class="notes-btn green" id="btn-notes-save" title="Save note with timestamp">💾 Save</button>
+          </div>
+        </div>
+        <textarea id="notes-input" placeholder="Type observation here…&#10;e.g. Motor running at 60% load, fan vibrating at 0.27g RMS"></textarea>
+        <div class="notes-log" id="notes-log"></div>
       </div>
     </section>
 
@@ -87,8 +108,8 @@
 
       <!-- Alarm threshold -->
       <div class="control-group">
-        <label>Alarm threshold <span id="alarm-val">120</span>°F</label>
-        <input type="range" id="alarm-slider" min="80" max="200" value="120" step="5" />
+        <label>Alarm threshold <span id="alarm-val">48</span>°C</label>
+        <input type="range" id="alarm-slider" min="30" max="100" value="48" step="1" />
       </div>
 
       <!-- Data collection -->

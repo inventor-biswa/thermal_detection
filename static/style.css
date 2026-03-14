@@ -100,12 +100,12 @@ main {
 
 #heatmap {
   border-radius: 8px;
-  width: 320px;
-  height: 320px;
+  width: 420px;
+  height: 420px;
   image-rendering: pixelated;
 }
 
-#colorbar { border-radius: 4px; }
+#colorbar { border-radius: 4px; width: 22px; height: 420px; }
 
 .colorbar-wrap {
   display: flex;
@@ -137,6 +137,27 @@ main {
 .stat-val.red    { color: var(--red); }
 .stat-val.yellow { color: var(--yellow); }
 .stat-val.cyan   { color: var(--cyan); }
+
+/* ── Camera control buttons ────────────────────────────────────── */
+.cam-controls {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cam-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #1a1a2e;
+  color: var(--gray);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.cam-btn:hover  { border-color: var(--cyan); color: var(--cyan); }
+.cam-btn.active { background: #0f2a3a; border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 6px rgba(56,189,248,0.3); }
 
 /* ── Vibration Panel ──────────────────────────────────────────── */
 .vib-stats {
@@ -266,3 +287,74 @@ input[type="range"] {
   color: var(--gray);
   white-space: pre-wrap;
 }
+
+/* ── Notes Panel ──────────────────────────────────────────────── */
+.notes-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  flex: 1;
+}
+
+.notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray);
+  letter-spacing: 0.5px;
+}
+
+.notes-actions { display: flex; gap: 6px; }
+
+.notes-btn {
+  padding: 3px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: #1a1a2e;
+  color: var(--gray);
+  font-size: 11px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.notes-btn:hover { opacity: 0.75; }
+.notes-btn.green { background: #0d2318; color: var(--green); border-color: var(--green); }
+
+#notes-input {
+  width: 100%;
+  min-height: 64px;
+  background: #111120;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  padding: 8px;
+  resize: vertical;
+  font-family: inherit;
+}
+#notes-input:focus { outline: none; border-color: var(--cyan); }
+
+.notes-log {
+  overflow-y: auto;
+  max-height: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.note-entry {
+  background: #0e0e1c;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--cyan);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 11px;
+}
+
+.note-ts   { color: var(--gray); font-size: 10px; margin-bottom: 2px; }
+.note-snap { color: var(--cyan); font-size: 10px; margin-bottom: 4px; font-family: monospace; }
+.note-text { color: var(--text); line-height: 1.5; }
