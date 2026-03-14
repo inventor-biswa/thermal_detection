@@ -11,6 +11,12 @@ Usage:
 Then open: http://raspberrypi.local:5000  (or http://<Pi-IP>:5000)
 """
 
+# ── Fix: prevent code.py shadowing Python's stdlib 'code' module ──
+import sys as _sys, os as _os
+_proj = _os.path.dirname(_os.path.abspath(__file__))
+_sys.path = [_proj] + [p for p in _sys.path if p not in ('', '.', _proj)]
+# ──────────────────────────────────────────────────────────────────
+
 import argparse
 import glob
 import json
